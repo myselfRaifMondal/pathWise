@@ -1,0 +1,6 @@
+Flask>=3.0
+Flask-Login
+Flask-SQLAlchemy
+Flask-Migrate
+psycopg2-binary
+python-dotenv
