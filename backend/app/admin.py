@@ -3,7 +3,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_login import current_user
 from flask import redirect, url_for, request
-from app import db
+from app.__init__ import db
 from app.models import User, Application
 
 class SecureModelView(ModelView):
