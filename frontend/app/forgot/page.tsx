@@ -1,4 +1,3 @@
-// app/forgot.tsx
 "use client";
 
 import { useState } from "react";
@@ -9,9 +8,8 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Call backend forgot-password API
-    console.log("Password reset requested for:", email);
-    alert("If this email exists, you’ll receive reset instructions.");
+    // TODO: call backend API
+    alert("If this email exists, reset instructions were sent.");
   };
 
   return (
@@ -22,9 +20,9 @@ export default function ForgotPasswordPage() {
     >
       <form
         onSubmit={handleSubmit}
-        className="bg-white shadow-md rounded-lg p-6 w-full max-w-md"
+        className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md"
       >
-        <h2 className="text-2xl font-bold mb-4">Forgot Password</h2>
+        <h2 className="text-2xl font-bold mb-4 text-center">Forgot Password</h2>
         <label className="block mb-3">
           <span className="text-gray-700">Email</span>
           <input
@@ -41,11 +39,6 @@ export default function ForgotPasswordPage() {
         >
           Send Reset Link
         </button>
-        <p className="mt-4 text-sm text-gray-500">
-          <a href="/login" className="text-blue-600 hover:underline">
-            Back to login
-          </a>
-        </p>
       </form>
     </motion.div>
   );
