@@ -26,17 +26,7 @@ export default function HomePage() {
         <span className="font-semibold">internships</span>, and{" "}
         <span className="font-semibold">applications</span> in one place 🚀
       </motion.p>
-      <div className="w-[250px] h-[250px]">
-        <Canvas camera={{ position: [0, 0, 5] }}>
-          <ambientLight />
-          <Suspense fallback={null}>
-            <Box rotation={[0.4, 0.2, 0]}>
-              <meshStandardMaterial color="orange" />
-            </Box>
-          </Suspense>
-          <OrbitControls />
-        </Canvas>
-      </div>
+      {/* 3D Canvas removed as requested */}
       <a
         href="/signup"
         className="mt-10 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-lg transition"
