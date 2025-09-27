@@ -2,11 +2,21 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { ReactNode, useEffect } from "react";
+import { useAuth } from "../../contexts/AuthContext";
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { isAuthenticated, checkSession } = useAuth();
+
+  useEffect(() => {
+    checkSession();
+    if (!isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [isAuthenticated]);
 
   const navItems = [
     { name: "Welcome", href: "/dashboard" },
@@ -14,6 +24,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     { name: "Calendar", href: "/dashboard/calendar" },
     { name: "Settings", href: "/dashboard/settings" },
   ];
+
+  if (!isAuthenticated) {
+    return null; // Prevent flicker
+  }
 
   return (
     <div className="flex h-screen">
