@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
+export default function AuthForms() {
   const { mode, setMode, login, signup } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
@@ -12,7 +13,7 @@ import { useAuth } from '../contexts/AuthContext';
   const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev: typeof formData) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
