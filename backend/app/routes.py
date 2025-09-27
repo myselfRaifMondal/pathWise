@@ -1,3 +1,49 @@
+from flask import session
+from app import create_app, db, login_manager
+from app.models import User, Application
+from flask_login import login_user, login_required, logout_user, current_user
+
+app = create_app()
+
+# --- API AUTH ENDPOINTS ---
+@app.route('/api/signup', methods=['POST'])
+def api_signup():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    if not email or not password:
+        return jsonify({'error': 'Email and password required'}), 400
+    if User.query.filter_by(email=email).first():
+        return jsonify({'error': 'Email already registered'}), 409
+    user = User(email=email)
+    user.set_password(password)
+    db.session.add(user)
+    db.session.commit()
+    login_user(user)
+    return jsonify({'msg': 'Signup successful', 'user': {'id': user.id, 'email': user.email}}), 201
+
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    user = User.query.filter_by(email=email).first()
+    if user and user.check_password(password):
+        login_user(user)
+        return jsonify({'msg': 'Login successful', 'user': {'id': user.id, 'email': user.email}})
+    return jsonify({'error': 'Invalid credentials'}), 401
+
+@app.route('/api/logout', methods=['POST'])
+@login_required
+def api_logout():
+    logout_user()
+    return jsonify({'msg': 'Logged out'})
+
+@app.route('/api/session', methods=['GET'])
+def api_session():
+    if current_user.is_authenticated:
+        return jsonify({'authenticated': True, 'user': {'id': current_user.id, 'email': current_user.email}})
+    return jsonify({'authenticated': False}), 200
 from flask import render_template, redirect, url_for, request, flash, jsonify
 from app import create_app, db, login_manager
 from app.models import User, Application
