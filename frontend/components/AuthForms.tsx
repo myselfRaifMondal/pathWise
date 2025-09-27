@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
-export default function AuthForms() {
-  const { mode, setMode, login } = useAuth();
+  const { mode, setMode, login, signup } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -10,6 +9,7 @@ export default function AuthForms() {
     confirmPassword: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -18,11 +18,22 @@ export default function AuthForms() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // TODO: Call backend API for login/signup/forgot
-    setTimeout(() => {
-      login(); // Simulate login for now
-      setIsLoading(false);
-    }, 800);
+    setError(null);
+    if (mode === 'signin') {
+      const res = await login(formData.email, formData.password);
+      if (res?.error) setError(res.error);
+    } else if (mode === 'signup') {
+      if (formData.password !== formData.confirmPassword) {
+        setError('Passwords do not match');
+        setIsLoading(false);
+        return;
+      }
+      const res = await signup(formData.email, formData.password);
+      if (res?.error) setError(res.error);
+    } else if (mode === 'forgot-password') {
+      setError('Forgot password not implemented');
+    }
+    setIsLoading(false);
   };
 
   return (
@@ -32,6 +43,7 @@ export default function AuthForms() {
           {mode === 'signup' ? 'Sign Up' : mode === 'forgot-password' ? 'Forgot Password' : 'Sign In'}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <div className="text-red-600 text-sm text-center">{error}</div>}
           {mode === 'signup' && (
             <input
               type="text"
