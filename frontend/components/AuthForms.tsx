@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { Button, Input } from '../lib/ui';
 
 export default function AuthForms() {
   const { mode, setMode, login, signup } = useAuth();
@@ -46,76 +47,68 @@ export default function AuthForms() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && <div className="text-red-600 text-sm text-center">{error}</div>}
           {mode === 'signup' && (
-            <input
+            <Input
               type="text"
               placeholder="Username"
               value={formData.username}
-              onChange={e => handleInputChange('username', e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('username', e.target.value)}
               required
             />
           )}
-          <input
+          <Input
             type="email"
             placeholder="Email"
             value={formData.email}
-            onChange={e => handleInputChange('email', e.target.value)}
-            className="w-full border rounded px-3 py-2"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('email', e.target.value)}
             required
           />
           {mode !== 'forgot-password' && (
-            <input
+            <Input
               type="password"
               placeholder="Password"
               value={formData.password}
-              onChange={e => handleInputChange('password', e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('password', e.target.value)}
               required
             />
           )}
           {mode === 'signup' && (
-            <input
+            <Input
               type="password"
               placeholder="Confirm Password"
               value={formData.confirmPassword}
-              onChange={e => handleInputChange('confirmPassword', e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('confirmPassword', e.target.value)}
               required
             />
           )}
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded transition"
-            disabled={isLoading}
-          >
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? 'Loading...' : mode === 'signup' ? 'Create Account' : mode === 'forgot-password' ? 'Send Reset Link' : 'Sign In'}
-          </button>
+          </Button>
         </form>
         <div className="mt-4 text-center text-sm text-gray-500">
           {mode === 'signup' ? (
             <>
               Already have an account?{' '}
-              <button className="text-blue-600 hover:underline" onClick={() => setMode('signin')}>
+              <Button variant="link" type="button" onClick={() => setMode('signin')}>
                 Sign In
-              </button>
+              </Button>
             </>
           ) : mode === 'forgot-password' ? (
             <>
               Remembered your password?{' '}
-              <button className="text-blue-600 hover:underline" onClick={() => setMode('signin')}>
+              <Button variant="link" type="button" onClick={() => setMode('signin')}>
                 Sign In
-              </button>
+              </Button>
             </>
           ) : (
             <>
               New here?{' '}
-              <button className="text-blue-600 hover:underline" onClick={() => setMode('signup')}>
+              <Button variant="link" type="button" onClick={() => setMode('signup')}>
                 Create an account
-              </button>
+              </Button>
               <br />
-              <button className="text-blue-600 hover:underline mt-1" onClick={() => setMode('forgot-password')}>
+              <Button variant="link" type="button" className="mt-1" onClick={() => setMode('forgot-password')}>
                 Forgot password?
-              </button>
+              </Button>
             </>
           )}
         </div>

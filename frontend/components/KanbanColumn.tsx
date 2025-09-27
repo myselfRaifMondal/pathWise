@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { API_BASE, fetchJSON } from "../lib/api";
 
+export default function KanbanColumn({ title, items, onDropApp }: { title: string; items: any[]; onDropApp: (itemId: any) => void }) {
   const [loadingId, setLoadingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 

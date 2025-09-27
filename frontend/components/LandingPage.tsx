@@ -1,9 +1,10 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { Button } from '../lib/ui';
 
 export default function LandingPage() {
   const { setMode } = useAuth();
-  return (
+    return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <header className="mb-8">
         <h1 className="text-4xl font-bold text-blue-700 mb-2">PathWise</h1>
@@ -12,18 +13,12 @@ export default function LandingPage() {
         </p>
       </header>
       <div className="flex gap-4">
-        <button
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-lg transition"
-          onClick={() => setMode('signin')}
-        >
-          Sign In
-        </button>
-        <button
-          className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-lg transition"
-          onClick={() => setMode('signup')}
-        >
-          Get Started
-        </button>
+          <Button variant="default" size="lg" onClick={() => setMode('signin')}>
+            Sign In
+          </Button>
+          <Button variant="outline" size="lg" onClick={() => setMode('signup')}>
+            Sign Up
+          </Button>
       </div>
     </div>
   );
