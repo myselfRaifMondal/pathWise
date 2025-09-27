@@ -1,46 +1,56 @@
-// frontend/app/dashboard/layout.tsx
+// app/dashboard/layout.tsx
 "use client";
-import React from "react";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ReactNode } from "react";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname() || "/dashboard";
-  const active = (p: string) => pathname.startsWith(p) ? "bg-blue-50 border-blue-500" : "hover:bg-gray-50";
+export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+
+  const navItems = [
+    { name: "Welcome", href: "/dashboard" },
+    { name: "Kanban", href: "/dashboard/kanban" },
+    { name: "Calendar", href: "/dashboard/calendar" },
+    { name: "Settings", href: "/dashboard/settings" },
+  ];
 
   return (
-    <div className="flex gap-6">
-      {/* Left column - nav */}
-      <aside className="w-64 sticky top-20 self-start">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="mb-4">
-            <h2 className="text-lg font-bold">Dashboard</h2>
-            <p className="text-sm text-gray-500">Overview & tools</p>
-          </div>
-
-          <nav className="space-y-2">
-            <Link href="/dashboard" className={`block px-3 py-2 rounded border ${active("/dashboard")}`}>Welcome</Link>
-            <Link href="/dashboard/kanban" className={`block px-3 py-2 rounded border ${active("/dashboard/kanban")}`}>Kanban</Link>
-            <Link href="/dashboard/calendar" className={`block px-3 py-2 rounded border ${active("/dashboard/calendar")}`}>Calendar</Link>
-            <Link href="/dashboard/settings" className={`block px-3 py-2 rounded border ${active("/dashboard/settings")}`}>Settings</Link>
-          </nav>
-        </div>
-
-        <div className="mt-4">
-          {/* quick action */}
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h4 className="font-semibold text-sm mb-2">Quick Actions</h4>
-            <Link href="/dashboard" className="block">
-              <button className="w-full bg-blue-600 text-white py-2 rounded">+ Add Application</button>
+    <div className="flex h-screen">
+      {/* Sidebar */}
+      <aside className="w-64 bg-white border-r flex flex-col">
+        <div className="p-6 text-xl font-bold">PathWise</div>
+        <nav className="flex-1 p-2 space-y-1">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`block px-3 py-2 rounded-lg ${
+                pathname === item.href
+                  ? "bg-blue-600 text-white"
+                  : "hover:bg-gray-100"
+              }`}
+            >
+              {item.name}
             </Link>
-          </div>
-        </div>
+          ))}
+        </nav>
       </aside>
 
-      {/* Main content */}
-      <section className="flex-1">
-        {children}
-      </section>
+      {/* Main */}
+      <main className="flex-1 bg-gray-50 flex flex-col">
+        {/* Topbar */}
+        <header className="h-14 bg-white border-b flex items-center justify-between px-6">
+          <h1 className="font-semibold text-lg">Dashboard</h1>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-600">Hi, User</span>
+            <div className="h-8 w-8 bg-gray-300 rounded-full"></div>
+          </div>
+        </header>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">{children}</div>
+      </main>
     </div>
   );
 }
