@@ -1,36 +1,90 @@
+// frontend/app/dashboard/page.tsx
 "use client";
+import React, { useEffect, useState } from "react";
+import SmallStatCard from "../../components/SmallStatCard";
+import AddApplicationModal from "../../components/AddApplicationModal";
+import ApplicationRow from "../../components/ApplicationRow";
+import { API_BASE, fetchJSON } from "../../lib/api";
 
-import { Bar } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
+type AppType = { id: number; title: string; company: string; status: string; date?: string };
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+export default function DashboardWelcome() {
+  const [apps, setApps] = useState<AppType[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default function DashboardPage() {
-  const data = {
-    labels: ["Applied", "In Progress", "Offered", "Rejected"],
-    datasets: [
-      {
-        label: "Applications",
-        data: [12, 7, 3, 4],
-        backgroundColor: "rgba(37, 99, 235, 0.5)",
-      },
-    ],
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await fetchJSON(`${API_BASE}/applications`);
+        // server should send an array
+        setApps(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("fetch apps", err);
+        setApps([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  function handleAdded(newApp: any) {
+    // if backend returned created object, push it; else use placeholder
+    setApps((s) => [newApp, ...s]);
+  }
+
+  function handleDeleted(id: any) {
+    setApps((s) => s.filter((x) => x.id !== id));
+  }
+
+  function handleUpdated(updated: any) {
+    setApps((s) => s.map((a) => (a.id === updated.id ? updated : a)));
+  }
+
+  const counts = {
+    Applied: apps.filter((a) => a.status === "Applied").length,
+    "In Progress": apps.filter((a) => a.status === "In Progress").length,
+    Offered: apps.filter((a) => a.status === "Offered").length,
+    Rejected: apps.filter((a) => a.status === "Rejected").length,
   };
 
+  const upcoming = apps
+    .filter((a) => a.date) // if date exists
+    .slice(0, 5);
+
   return (
-    <div className="p-8 bg-white shadow-lg rounded-lg">
-      <h2 className="text-3xl font-bold mb-6 text-blue-700">
-        Dashboard Analytics
-      </h2>
-      <Bar data={data} />
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div className="flex gap-4 w-full">
+          <SmallStatCard title="Applied" value={counts.Applied} color="blue" />
+          <SmallStatCard title="In Progress" value={counts["In Progress"]} color="yellow" />
+          <SmallStatCard title="Offered" value={counts.Offered} color="green" />
+          <SmallStatCard title="Rejected" value={counts.Rejected} color="red" />
+        </div>
+
+        <div className="ml-4">
+          <AddApplicationModal onAdded={handleAdded} />
+        </div>
+      </div>
+
+      {/* upcoming deadlines */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h3 className="font-bold mb-2">Today's Deadlines</h3>
+          {upcoming.length ? upcoming.map((u) => <div key={u.id} className="text-sm py-1">{u.title} — {u.company}</div>) : <div className="text-sm text-gray-400">No deadlines today</div>}
+        </div>
+
+        <div className="bg-white p-4 rounded-lg shadow col-span-2">
+          <h3 className="font-bold mb-3">Your Applications</h3>
+          {loading ? <div>Loading...</div> : apps.length === 0 ? <div className="text-gray-500">No applications yet.</div> : (
+            <table className="w-full border-collapse">
+              <thead><tr className="bg-gray-100"><th className="p-2">Title</th><th className="p-2">Company</th><th className="p-2">Status</th><th className="p-2">Date</th><th className="p-2">Actions</th></tr></thead>
+              <tbody>
+                {apps.map((app) => <ApplicationRow key={app.id} app={app} onDeleted={handleDeleted} onUpdated={handleUpdated} />)}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
