@@ -1,15 +1,10 @@
-// app/layout.tsx
-import type { Metadata } from "next";
 
+"use client";
+// app/layout.tsx
 
 import "./globals.css";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
 import { AppProvider } from "../contexts/AppContext";
-
-export const metadata: Metadata = {
-  title: "PathWise",
-  description: "Track jobs, internships, and applications with ease.",
-};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   // Custom header with auth-aware navigation
@@ -38,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AppProvider>
             <Header />
             {/* Page Content */}
-            <main className="flex-1 max-w-6xl mx-auto px-4 py-8">
+            <main className="flex-1 min-h-screen flex flex-col items-center justify-center px-4 py-8">
               {children}
             </main>
             {/* Footer */}

@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const checkSession = async () => {
     try {
-      const res = await fetch('/api/session');
+  const res = await fetch('http://localhost:5000/api/session', { credentials: 'include' });
       const data = await res.json();
       if (data.authenticated) {
         setIsAuthenticated(true);
@@ -43,10 +43,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const res = await fetch('/api/login', {
+      const res = await fetch('http://localhost:5000/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
+        credentials: 'include'
       });
       const data = await res.json();
       if (res.ok) {
@@ -67,10 +68,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signup = async (email: string, password: string) => {
     try {
-      const res = await fetch('/api/signup', {
+      const res = await fetch('http://localhost:5000/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
+        credentials: 'include'
       });
       const data = await res.json();
       if (res.ok) {
@@ -90,7 +92,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
-    await fetch('/api/logout', { method: 'POST' });
+  await fetch('http://localhost:5000/api/logout', { method: 'POST', credentials: 'include' });
     setIsAuthenticated(false);
     setUser(null);
   };
