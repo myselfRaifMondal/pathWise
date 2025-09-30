@@ -34,5 +34,4 @@ def create_app(config_override=None):
         from app.routes import register_routes
         register_routes(app)
         from app import models
-        db.create_all()
     return app
