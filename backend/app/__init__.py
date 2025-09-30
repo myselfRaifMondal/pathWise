@@ -40,10 +40,14 @@ def create_app(config_override=None):
         from app.routes import register_routes
         register_routes(app)
         from app import models  # Import models to register them with SQLAlchemy
-        print("Tables created:", list(db.metadata.tables.keys()))
         # Register user loader after models are imported
         from app.models import User
         @login_manager.user_loader
         def load_user(user_id):
             return User.query.get(int(user_id))
+    # Ensure tables are created for the correct app context
+    if not app.config.get('TESTING', False):
+        with app.app_context():
+            db.create_all()
+            print("Tables created:", list(db.metadata.tables.keys()))
     return app
