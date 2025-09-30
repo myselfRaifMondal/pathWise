@@ -1,12 +1,18 @@
+__all__ = ["db", "login_manager", "create_app"]
+from flask import Flask
+from dotenv import load_dotenv
+import os
 from flask import Flask
 from dotenv import load_dotenv
 import os
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + '/..'))
 from config import DevelopmentConfig
 from flask_cors import CORS
-
 
 db = SQLAlchemy()
 login_manager = LoginManager()
@@ -33,5 +39,11 @@ def create_app(config_override=None):
         init_admin(app)
         from app.routes import register_routes
         register_routes(app)
-        from app import models
+        from app import models  # Import models to register them with SQLAlchemy
+        print("Tables created:", list(db.metadata.tables.keys()))
+        # Register user loader after models are imported
+        from app.models import User
+        @login_manager.user_loader
+        def load_user(user_id):
+            return User.query.get(int(user_id))
     return app

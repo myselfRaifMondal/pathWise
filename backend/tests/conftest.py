@@ -1,7 +1,7 @@
+
 import pytest
 from app import create_app, db, login_manager
 from app.models import User
-
 
 @pytest.fixture(scope='function')
 def app():
@@ -12,8 +12,11 @@ def app():
         'SERVER_NAME': 'localhost.localdomain'
     })
     with app.app_context():
-        from app import models
+        # Import all model classes to register them with SQLAlchemy
+        from app.models import User, Application
+        print("Registered models:", db.Model.__subclasses__())
         db.create_all()
+        print("Tables created after create_all():", list(db.metadata.tables.keys()))
         login_manager.init_app(app)
         @login_manager.user_loader
         def load_user(user_id):
