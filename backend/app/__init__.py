@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from config import DevelopmentConfig
+from flask_cors import CORS
 
 
 db = SQLAlchemy()
@@ -21,6 +22,8 @@ def create_app():
     migrate.init_app(app, db)
     login_manager.init_app(app)
     login_manager.login_view = 'login'
+    # Enable CORS for frontend requests
+    CORS(app, supports_credentials=True)
 
     # Import models and routes
     with app.app_context():
