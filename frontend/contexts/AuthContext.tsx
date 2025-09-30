@@ -1,5 +1,6 @@
 "use client";
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { API_BASE, fetchJSON } from '../lib/api';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -26,9 +27,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const checkSession = async () => {
     try {
-  const res = await fetch('http://localhost:5000/api/session', { credentials: 'include' });
-      const data = await res.json();
-      if (data.authenticated) {
+      const data = await fetchJSON(`${API_BASE}/api/session`, {
+        credentials: 'include',
+      });
+      if (data && data.authenticated) {
         setIsAuthenticated(true);
         setUser(data.user);
       } else {
@@ -43,21 +45,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const res = await fetch('http://localhost:5000/api/login', {
+      const data = await fetchJSON(`${API_BASE}/api/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
-        credentials: 'include'
+        credentials: 'include',
       });
-      const data = await res.json();
-      if (res.ok) {
+      if (data && !data.error) {
         setIsAuthenticated(true);
         setUser(data.user);
         return {};
       } else {
         setIsAuthenticated(false);
         setUser(null);
-        return { error: data.error || 'Login failed' };
+        return { error: data?.error || 'Login failed' };
       }
     } catch {
       setIsAuthenticated(false);
@@ -68,21 +68,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signup = async (email: string, password: string) => {
     try {
-      const res = await fetch('http://localhost:5000/api/signup', {
+      const data = await fetchJSON(`${API_BASE}/api/signup`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
-        credentials: 'include'
+        credentials: 'include',
       });
-      const data = await res.json();
-      if (res.ok) {
+      if (data && !data.error) {
         setIsAuthenticated(true);
         setUser(data.user);
         return {};
       } else {
         setIsAuthenticated(false);
         setUser(null);
-        return { error: data.error || 'Signup failed' };
+        return { error: data?.error || 'Signup failed' };
       }
     } catch {
       setIsAuthenticated(false);
@@ -92,7 +90,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
-  await fetch('http://localhost:5000/api/logout', { method: 'POST', credentials: 'include' });
+    await fetchJSON(`${API_BASE}/api/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    });
     setIsAuthenticated(false);
     setUser(null);
   };
