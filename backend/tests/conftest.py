@@ -15,13 +15,11 @@ def app():
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    ctx = app.app_context()
-    ctx.push()
-    db.create_all()
-    yield app
-    db.session.remove()
-    db.drop_all()
-    ctx.pop()
+    with app.app_context():
+        db.create_all()
+        yield app
+        db.session.remove()
+        db.drop_all()
 
 
 

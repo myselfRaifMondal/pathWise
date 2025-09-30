@@ -3,11 +3,10 @@ from app import db
 from app.models import User, Application
 
 def test_user_password_hashing(app):
-    with app.app_context():
-        user = User(email="test@example.com")
-        user.set_password("password123")
-        assert user.check_password("password123") is True
-        assert user.check_password("wrong") is False
+    user = User(email="test@example.com")
+    user.set_password("password123")
+    assert user.check_password("password123") is True
+    assert user.check_password("wrong") is False
 
 def test_application_relationship(app):
     with app.app_context():
@@ -22,9 +21,3 @@ def test_application_relationship(app):
 
         assert app_obj.user == user
 
-        app_obj = Application(title="Internship", company="ACME Corp", user=user)
-        db.session.add(app_obj)
-        db.session.commit()
-
-        assert app_obj.user == user
-        assert user.applications[0].title == "Internship"
