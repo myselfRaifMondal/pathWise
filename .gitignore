@@ -4,3 +4,4 @@ env/
 __pycache__/
 .next/
 figma_pathwise/
+test_output.txt

@@ -12,12 +12,14 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 migrate = Migrate()
 
-def create_app():
+def create_app(config_override=None):
     # Load environment variables from .env file
     env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '.env')
     load_dotenv(env_path)
     app = Flask(__name__)
     app.config.from_object(DevelopmentConfig)
+    if config_override:
+        app.config.update(config_override)
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
@@ -29,7 +31,8 @@ def create_app():
     with app.app_context():
         from app.admin import init_admin
         init_admin(app)
-        from app import routes  # register routes
+        from app.routes import register_routes
+        register_routes(app)
         from app import models
         db.create_all()
     return app
