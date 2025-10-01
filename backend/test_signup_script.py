@@ -1,6 +1,6 @@
 import requests
 
-API_URL = "http://127.0.0.1:5500/api/signup"
+API_URL = "http://127.0.0.1:5001/api/signup"
 
 def signup(email, password):
     payload = {"email": email, "password": password}
