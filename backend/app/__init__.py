@@ -23,6 +23,9 @@ def create_app(config_override=None):
     env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '.env')
     load_dotenv(env_path)
     app = Flask(__name__)
+    # ensure debug logging is visible for troubleshooting
+    import logging
+    app.logger.setLevel(logging.DEBUG)
     app.config.from_object(DevelopmentConfig)
     if config_override:
         app.config.update(config_override)

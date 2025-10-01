@@ -2,15 +2,30 @@ from flask import session, render_template, redirect, url_for, request, flash, j
 from app import db, login_manager
 
 from flask_login import login_user, login_required, logout_user, current_user
+from flask_cors import cross_origin
 
 def register_routes(app):
+    # simple request logger for debugging
+    @app.before_request
+    def _log_request():
+        app.logger.debug(f"Incoming request: {request.method} {request.path} from {request.remote_addr}")
+        # log headers that may affect auth/CORS
+        app.logger.debug(f"Headers: {dict(request.headers)}")
     # Import models inside the function to ensure correct app context
     # Do not import models here; import inside each route function
     # --- API AUTH ENDPOINTS ---
-    @app.route('/api/signup', methods=['POST'])
+    @app.route('/api/signup', methods=['POST', 'OPTIONS'])
+    @cross_origin(supports_credentials=True)
     def api_signup():
         from app.models import User
-        data = request.get_json()
+        app.logger.info("api_signup entered")
+        # Handle CORS preflight
+        if request.method == 'OPTIONS':
+            return jsonify({'msg': 'ok'}), 200
+        data = request.get_json(silent=True)
+        if not data:
+            app.logger.warning("api_signup: no JSON body received")
+            return jsonify({'error': 'JSON body required'}), 400
         email = data.get('email')
         password = data.get('password')
         if not email or not password:
@@ -21,13 +36,13 @@ def register_routes(app):
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
-        login_user(user)
+        # Do not call login_user for API signup; return created response
         return jsonify({'msg': 'Signup successful', 'user': {'id': user.id, 'email': user.email}}), 201
 
     @app.route('/api/login', methods=['POST'])
     def api_login():
         from app.models import User
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
         email = data.get('email')
         password = data.get('password')
         user = User.query.filter_by(email=email).first()
@@ -44,17 +59,17 @@ def register_routes(app):
 
     @app.route('/api/session', methods=['GET'])
     def api_session():
-        from app.models import User
+        # session status
         if current_user.is_authenticated:
             return jsonify({'authenticated': True, 'user': {'id': current_user.id, 'email': current_user.email}})
         return jsonify({'authenticated': False}), 200
 
     @app.route('/signup', methods=['GET', 'POST'])
     def signup():
-    from app.models import User
+        from app.models import User
         if request.method == 'POST':
-            email = request.form['email']
-            pwd = request.form['password']
+            email = request.form.get('email')
+            pwd = request.form.get('password')
             if User.query.filter_by(email=email).first():
                 flash('Email already registered')
                 return redirect(url_for('signup'))
@@ -68,10 +83,10 @@ def register_routes(app):
 
     @app.route('/login', methods=['GET', 'POST'])
     def login():
-    from app.models import User
-    if request.method == 'POST':
-            email = request.form['email']
-            pwd = request.form['password']
+        from app.models import User
+        if request.method == 'POST':
+            email = request.form.get('email')
+            pwd = request.form.get('password')
             user = User.query.filter_by(email=email).first()
             if user and user.check_password(pwd):
                 login_user(user)
@@ -82,15 +97,14 @@ def register_routes(app):
     @app.route('/logout')
     @login_required
     def logout():
-    from app.models import User
-    logout_user()
-    return redirect(url_for('login'))
+        # No model import required here
+        logout_user()
+        return redirect(url_for('login'))
 
     @app.route('/dashboard')
     @login_required
     def dashboard():
-    from app.models import User
-    return render_template('dashboard.html')
+        return render_template('dashboard.html')
 
     @app.route('/applications', methods=['GET', 'POST'])
     @login_required
@@ -130,9 +144,9 @@ def register_routes(app):
     @app.route('/admin/users')
     @login_required
     def admin_users():
-    from app.models import User
-    if current_user.role != 'admin':
-        return redirect(url_for('dashboard'))
-    users = User.query.all()
-    return render_template('admin_users.html', users=users)
+        from app.models import User
+        if current_user.role != 'admin':
+            return redirect(url_for('dashboard'))
+        users = User.query.all()
+        return render_template('admin_users.html', users=users)
     # --- API AUTH ENDPOINTS ---
