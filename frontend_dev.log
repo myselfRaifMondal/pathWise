@@ -1,0 +1,6 @@
+/Users/raifsalauddinmondal/.bash_profile: line 21: syntax error: unexpected end of file
+
+> pathwise-frontend@1.0.0 dev
+> next dev
+
+You are using Node.js 18.16.0. For Next.js, Node.js version >= v18.17.0 is required.

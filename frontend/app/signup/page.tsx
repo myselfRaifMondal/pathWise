@@ -11,8 +11,25 @@ export default function SignupPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: call backend API
-    router.push("/dashboard");
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5001";
+    fetch(`${apiUrl}/api/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    })
+      .then(async (res) => {
+        if (res.ok) {
+          // navigate to dashboard on success
+          router.push("/dashboard");
+        } else {
+          const text = await res.text();
+          alert("Signup failed: " + text);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Signup failed: " + err.message);
+      });
   };
 
   return (
