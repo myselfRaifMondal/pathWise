@@ -48,6 +48,8 @@ coverage/
 .vercel
 
 # example env files are documentation, not secrets — keep these tracked
+
+# example env files are documentation, not secrets — keep these tracked
+# (note: `vercel link` likes to append `.env*` here; it must not sit below these)
 !.env.example
 !.env.local.example
-.env*
