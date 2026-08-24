@@ -14,7 +14,6 @@ venv/
 # secrets
 .env
 .env.*
-!.env.example
 
 # databases
 *.db
@@ -47,3 +46,8 @@ figma_pathwise/
 test_output.txt
 coverage/
 .vercel
+
+# example env files are documentation, not secrets — keep these tracked
+!.env.example
+!.env.local.example
+.env*
