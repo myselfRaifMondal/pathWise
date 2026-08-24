@@ -2,6 +2,12 @@
   "name": "pathwise",
   "version": "1.0.0",
   "private": true,
+  "author": "Raif Mondal (https://github.com/myselfRaifMondal)",
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/myselfRaifMondal/pathWise.git"
+  },
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",

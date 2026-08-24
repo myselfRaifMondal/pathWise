@@ -14,6 +14,13 @@ type Tone = 'fg' | 'fg2' | 'fg3' | 'red' | 'green';
 
 export type PWTextProps = TextProps & {
   /**
+   * Web only. React Native Web renders a real <a> when this is set, which keeps
+   * links crawlable and middle-clickable; native ignores the prop, so pair it
+   * with onPress there.
+   */
+  href?: string;
+  hrefAttrs?: { rel?: string; target?: string; download?: boolean };
+  /**
    * A role from the shared type scale. Preferred over `size` for anything whose
    * size should respond to the viewport. On web the size, weight, line-height,
    * tracking and measure all come from CSS; on native they are computed.
@@ -36,6 +43,8 @@ export function Text({
   style,
   ...rest
 }: PWTextProps) {
+  // `href`/`hrefAttrs` travel in ...rest; react-native-web reads them, native
+  // drops them. No platform branch needed.
   const theme = useTheme();
   const { width } = useWindowDimensions();
 

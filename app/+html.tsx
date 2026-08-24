@@ -24,6 +24,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
           content="width=device-width, initial-scale=1, shrink-to-fit=no"
         />
         <meta name="theme-color" content="#000000" />
+        <meta name="author" content="Raif Mondal" />
 
         {/* Expo's reset: lets body scroll normally instead of being locked. */}
         <ScrollViewStyleReset />

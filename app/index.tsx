@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Head } from '@/components/Head';
@@ -12,6 +12,8 @@ import { useTheme } from '@/theme/ThemeProvider';
 import { isWeb } from '@/theme/responsive';
 import { useResponsive } from '@/theme/useResponsive';
 import { web } from '@/theme/web';
+
+const AUTHOR_URL = 'https://github.com/myselfRaifMondal';
 
 const FEATURES = [
   {
@@ -216,6 +218,17 @@ export default function Landing() {
             <Text size={12} tone="fg3" onPress={() => router.push('/terms')}>
               Terms
             </Text>
+            <Text
+              size={12}
+              tone="fg3"
+              accessibilityRole="link"
+              href={AUTHOR_URL}
+              hrefAttrs={{ rel: 'author noopener', target: '_blank' }}
+              onPress={() => Linking.openURL(AUTHOR_URL)}
+              style={styles.credit}
+            >
+              Built by Raif Mondal
+            </Text>
             <Text size={12} tone="fg3">
               Your data stays yours.
             </Text>
@@ -247,5 +260,6 @@ const styles = StyleSheet.create({
     gap: 10,
     alignItems: 'center',
   },
-  footerLinks: { flexDirection: 'row', gap: 20 },
+  footerLinks: { flexDirection: 'row', gap: 20, flexWrap: 'wrap', justifyContent: 'center' },
+  credit: { textDecorationLine: 'underline' },
 });

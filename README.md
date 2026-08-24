@@ -3,6 +3,8 @@
 Track every job and internship application in one place — six stages, deadlines
 that surface themselves, and a funnel computed from your own log.
 
+Built by [Raif Mondal](https://github.com/myselfRaifMondal).
+
 One Expo codebase ships all three targets:
 
 | Target | How |
@@ -79,3 +81,7 @@ Set `DATABASE_URL`, `SECRET_KEY`, `JWT_SECRET`, `CORS_ORIGINS` and `APP_BASE_URL
 on `pathwise-api`, and `EXPO_PUBLIC_API_URL` on `pathwise-web`. Run
 `flask db upgrade` against the Neon database yourself — the app never creates or
 alters tables at runtime.
+
+## Licence
+
+AGPL-3.0-only — see [LICENSE](LICENSE) and [NOTICE](NOTICE).
