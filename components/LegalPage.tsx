@@ -1,11 +1,15 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { useTheme } from '@/theme/ThemeProvider';
+import { isWeb } from '@/theme/responsive';
+import { useResponsive } from '@/theme/useResponsive';
+import { web } from '@/theme/web';
+
 
 export type LegalSection = { heading: string; body: string[] };
 
@@ -23,12 +27,12 @@ export function LegalPage({
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
-  const gutter = width >= 900 ? 48 : 20;
+  const { gutter } = useResponsive();
 
   return (
     <ScrollView
       style={{ backgroundColor: theme.colors.page }}
+      {...web('gutter')}
       contentContainerStyle={{
         paddingHorizontal: gutter,
         paddingTop: insets.top + 40,
@@ -37,9 +41,7 @@ export function LegalPage({
     >
       <View style={styles.column}>
         <Button label="← Back" variant="ghost" onPress={() => router.back()} style={styles.back} />
-        <Text size={34} weight="600">
-          {title}
-        </Text>
+        <Text variant="screenTitle">{title}</Text>
         <Text size={12} tone="fg3" style={styles.updated}>
           Last updated {updated}
         </Text>

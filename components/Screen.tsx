@@ -1,9 +1,13 @@
 import React from 'react';
-import { RefreshControl, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui/Text';
 import { useTheme } from '@/theme/ThemeProvider';
+import { isWeb } from '@/theme/responsive';
+import { useResponsive } from '@/theme/useResponsive';
+import { web } from '@/theme/web';
+
 
 /** Shared page frame: centred 1120px column, matching the design's max-width. */
 export function Screen({
@@ -21,12 +25,12 @@ export function Screen({
 }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
-  const gutter = width >= 900 ? 48 : 20;
+  const { gutter } = useResponsive();
 
   return (
     <ScrollView
       style={{ backgroundColor: theme.colors.page }}
+      {...web('gutter')}
       contentContainerStyle={{ paddingHorizontal: gutter, paddingBottom: insets.bottom + 64 }}
       refreshControl={
         onRefresh ? (
@@ -36,9 +40,7 @@ export function Screen({
     >
       <View style={styles.column}>
         <View style={styles.header}>
-          <Text size={34} weight="600">
-            {title}
-          </Text>
+          <Text variant="screenTitle">{title}</Text>
           {action}
         </View>
         {children}

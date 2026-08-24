@@ -1,10 +1,14 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui/Text';
 import { useTheme } from '@/theme/ThemeProvider';
+import { isWeb } from '@/theme/responsive';
+import { useResponsive } from '@/theme/useResponsive';
+import { web } from '@/theme/web';
+
 
 /**
  * The design's drawer and dialog. Both are presented as router modals, so this
@@ -24,20 +28,16 @@ export function Sheet({
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
-  const wide = width >= 700;
+  const { wideSheet } = useResponsive();
 
   return (
     <View style={[styles.backdrop, { backgroundColor: theme.colors.page }]}>
       <View
+        {...web('sheet')}
         style={[
           styles.panel,
-          {
-            backgroundColor: theme.colors.sheet,
-            borderColor: theme.colors.line,
-            maxWidth: wide ? 560 : undefined,
-            marginTop: wide ? 0 : insets.top,
-          },
+          { backgroundColor: theme.colors.sheet, borderColor: theme.colors.line },
+          isWeb ? null : { maxWidth: wideSheet ? 560 : undefined, marginTop: wideSheet ? 0 : insets.top },
         ]}
       >
         <View style={[styles.head, { borderColor: theme.colors.line }]}>

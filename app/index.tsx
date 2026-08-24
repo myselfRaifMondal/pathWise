@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Head } from '@/components/Head';
@@ -9,6 +9,9 @@ import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { useApplications } from '@/state/ApplicationsProvider';
 import { useTheme } from '@/theme/ThemeProvider';
+import { isWeb } from '@/theme/responsive';
+import { useResponsive } from '@/theme/useResponsive';
+import { web } from '@/theme/web';
 
 const FEATURES = [
   {
@@ -73,13 +76,10 @@ export default function Landing() {
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
   const { startDemo } = useApplications();
-
-  const wide = width >= 900;
-  const gutter = wide ? 48 : 24;
-  const heroSize = wide ? 72 : Math.min(44, width * 0.11);
-  const bandSize = wide ? 44 : 30;
+  // On web every size below comes from CSS (theme/webStyles.ts); `gutter` is
+  // undefined there and the [data-pw="gutter"] rule applies the padding.
+  const { wide, gutter } = useResponsive();
 
   const openDemo = () => {
     startDemo();
@@ -94,11 +94,11 @@ export default function Landing() {
       />
       <Nav />
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 48 }}>
-        <View style={[styles.hero, { paddingHorizontal: gutter }]}>
-          <Text size={heroSize} weight="600" style={styles.center}>
+        <View {...web('gutter')} style={[styles.hero, { paddingHorizontal: gutter }]}>
+          <Text variant="hero" style={styles.center}>
             {'Every application,\naccounted for.'}
           </Text>
-          <Text size={wide ? 21 : 17} tone="fg2" style={[styles.center, styles.heroBody]}>
+          <Text variant="subtitle" tone="fg2" style={[styles.center, styles.measure]}>
             The simplest way to track jobs, internships and everything in between.
           </Text>
           <View style={styles.heroActions}>
@@ -110,42 +110,45 @@ export default function Landing() {
         {FEATURES.map((feature, index) => (
           <View
             key={feature.title}
+            {...web('gutter')}
             style={[
               styles.band,
-              {
-                paddingHorizontal: gutter,
-                backgroundColor: index % 2 === 0 ? theme.colors.band : theme.colors.land,
-              },
+              { paddingHorizontal: gutter,
+                backgroundColor: index % 2 === 0 ? theme.colors.band : theme.colors.land },
             ]}
           >
-            <Text size={bandSize} weight="600" style={styles.center}>
+            <Text variant="bandHeading" style={styles.center}>
               {feature.title}
             </Text>
-            <Text size={wide ? 17 : 15} tone="fg2" style={[styles.center, styles.bandBody]}>
+            <Text variant="bandBody" tone="fg2" style={[styles.center, styles.measure]}>
               {feature.body}
             </Text>
           </View>
         ))}
 
-        <View style={[styles.band, { paddingHorizontal: gutter }]}>
-          <Text size={bandSize} weight="600" style={styles.center}>
+        <View {...web('gutter')} style={[styles.band, { paddingHorizontal: gutter }]}>
+          <Text variant="bandHeading" style={styles.center}>
             {'Pricing that\nstays out of the way.'}
           </Text>
-          <Text size={wide ? 17 : 15} tone="fg2" style={[styles.center, styles.bandBody]}>
+          <Text variant="bandBody" tone="fg2" style={[styles.center, styles.measure]}>
             Free covers a full job search. Pay only when you need more.
           </Text>
 
-          <View style={[styles.plans, { flexDirection: wide ? 'row' : 'column' }]}>
+          <View
+            {...web('stack')}
+            style={[styles.plans, isWeb ? null : { flexDirection: wide ? 'row' : 'column' }]}
+          >
             {PLANS.map((plan) => (
               <View
                 key={plan.name}
+                {...web('stack-item')}
                 style={[
                   styles.plan,
                   {
                     backgroundColor: theme.colors.card,
                     borderColor: plan.featured ? theme.colors.line2 : theme.colors.line,
-                    flex: wide ? 1 : undefined,
                   },
+                  isWeb || !wide ? null : { flex: 1 },
                 ]}
               >
                 <View style={styles.planHead}>
@@ -160,9 +163,7 @@ export default function Landing() {
                     </View>
                   ) : null}
                 </View>
-                <Text size={40} weight="600">
-                  {plan.price}
-                </Text>
+                <Text variant="planPrice">{plan.price}</Text>
                 <Text size={13} tone="fg2">
                   {plan.cadence}
                 </Text>
@@ -189,8 +190,8 @@ export default function Landing() {
           </Text>
         </View>
 
-        <View style={[styles.band, { paddingHorizontal: gutter }]}>
-          <Text size={bandSize} weight="600" style={styles.center}>
+        <View {...web('gutter')} style={[styles.band, { paddingHorizontal: gutter }]}>
+          <Text variant="bandHeading" style={styles.center}>
             Start tracking.
           </Text>
           <Button
@@ -202,6 +203,7 @@ export default function Landing() {
         </View>
 
         <View
+          {...web('gutter')}
           style={[styles.footer, { paddingHorizontal: gutter, borderColor: theme.colors.line }]}
         >
           <Text size={12} tone="fg3">
@@ -227,10 +229,9 @@ export default function Landing() {
 const styles = StyleSheet.create({
   center: { textAlign: 'center' },
   hero: { paddingTop: 96, paddingBottom: 88, alignItems: 'center', gap: 20 },
-  heroBody: { maxWidth: 420 },
+  measure: { alignSelf: 'center' },
   heroActions: { flexDirection: 'row', gap: 12, marginTop: 12, flexWrap: 'wrap', justifyContent: 'center' },
   band: { paddingVertical: 88, alignItems: 'center', gap: 16 },
-  bandBody: { maxWidth: 460 },
   plans: { gap: 20, marginTop: 24, width: '100%', maxWidth: 1000, alignSelf: 'center' },
   plan: { borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, padding: 28, gap: 8 },
   planHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },

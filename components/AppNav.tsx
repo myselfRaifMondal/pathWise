@@ -1,12 +1,15 @@
 import { usePathname, useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { useApplications } from '@/state/ApplicationsProvider';
 import { useAuth } from '@/state/AuthProvider';
 import { useTheme } from '@/theme/ThemeProvider';
+import { isWeb } from '@/theme/responsive';
+import { useResponsive } from '@/theme/useResponsive';
+import { web } from '@/theme/web';
 import { initials } from '@/lib/format';
 
 const TABS = [
@@ -23,21 +26,26 @@ export function AppNav() {
   const pathname = usePathname();
   const { user } = useAuth();
   const { demo } = useApplications();
-  const { width } = useWindowDimensions();
-  const wide = width >= 900;
+  const { wide } = useResponsive();
 
   const monogram = user?.name ? initials(user.name) : user?.email?.slice(0, 2).toUpperCase() ?? '··';
 
   return (
     <View style={[styles.wrap, { backgroundColor: theme.colors.nav, borderColor: theme.colors.line }]}>
-      <View style={[styles.row, { paddingHorizontal: wide ? 48 : 20 }]}>
+      <View {...web('gutter')} style={[styles.row, isWeb ? null : { paddingHorizontal: wide ? 48 : 20 }]}>
         <Pressable accessibilityRole="link" onPress={() => router.push('/')}>
           <Text size={17} weight="600">
             PathWise
           </Text>
         </Pressable>
 
-        {wide ? <Tabs pathname={pathname} /> : null}
+        {isWeb ? (
+          <View {...web('tabs-inline')}>
+            <Tabs pathname={pathname} />
+          </View>
+        ) : wide ? (
+          <Tabs pathname={pathname} />
+        ) : null}
 
         <View style={styles.actions}>
           <Button label="＋ New" onPress={() => router.push('/new')} />
@@ -57,11 +65,11 @@ export function AppNav() {
         </View>
       </View>
 
-      {wide ? null : (
-        <View style={[styles.narrowTabs, { paddingHorizontal: 12 }]}>
+      {isWeb || !wide ? (
+        <View {...web('tabs-scroll')} style={[styles.narrowTabs, { paddingHorizontal: 12 }]}>
           <Tabs pathname={pathname} scrollable />
         </View>
-      )}
+      ) : null}
     </View>
   );
 }

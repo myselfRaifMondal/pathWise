@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { Head } from '@/components/Head';
 import { Screen } from '@/components/Screen';
@@ -8,13 +8,16 @@ import { Text } from '@/components/ui/Text';
 import { useApplications } from '@/state/ApplicationsProvider';
 import { useDerived } from '@/state/useDerived';
 import { useTheme } from '@/theme/ThemeProvider';
+import { isWeb } from '@/theme/responsive';
+import { useResponsive } from '@/theme/useResponsive';
+import { web } from '@/theme/web';
+
 
 export default function Analytics() {
   const theme = useTheme();
   const { applications } = useApplications();
   const derived = useDerived(applications, theme);
-  const { width } = useWindowDimensions();
-  const wide = width >= 900;
+  const { wide } = useResponsive();
 
   const rates = [
     { label: 'Response rate', value: derived.rates.response, note: 'Any reply after applying' },
@@ -31,9 +34,9 @@ export default function Analytics() {
 
       {derived.hasApplications ? (
         <>
-          <View style={[styles.rates, { flexDirection: wide ? 'row' : 'column' }]}>
+          <View {...web('stack')} style={[styles.rates, isWeb ? null : { flexDirection: wide ? 'row' : 'column' }]}>
             {rates.map((rate) => (
-              <Card key={rate.label} style={wide ? { flex: 1 } : undefined}>
+              <Card key={rate.label} {...web('stack-item')} style={isWeb || !wide ? undefined : { flex: 1 }}>
                 <Text size={12} tone="fg2" weight="500">
                   {rate.label}
                 </Text>
@@ -79,8 +82,8 @@ export default function Analytics() {
             ))}
           </Card>
 
-          <View style={[styles.rates, { flexDirection: wide ? 'row' : 'column' }]}>
-            <Card style={wide ? { flex: 1 } : undefined}>
+          <View {...web('stack')} style={[styles.rates, isWeb ? null : { flexDirection: wide ? 'row' : 'column' }]}>
+            <Card {...web('stack-item')} style={isWeb || !wide ? undefined : { flex: 1 }}>
               <Text size={12} tone="fg2" weight="500">
                 Offers
               </Text>
@@ -88,7 +91,7 @@ export default function Analytics() {
                 {derived.offers}
               </Text>
             </Card>
-            <Card style={wide ? { flex: 1 } : undefined}>
+            <Card {...web('stack-item')} style={isWeb || !wide ? undefined : { flex: 1 }}>
               <Text size={12} tone="fg2" weight="500">
                 Rejected
               </Text>

@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Head } from '@/components/Head';
 import { Screen } from '@/components/Screen';
@@ -10,6 +10,10 @@ import { Button } from '@/components/ui/Button';
 import { useApplications } from '@/state/ApplicationsProvider';
 import { useDerived } from '@/state/useDerived';
 import { useTheme } from '@/theme/ThemeProvider';
+import { isWeb } from '@/theme/responsive';
+import { useResponsive } from '@/theme/useResponsive';
+import { web } from '@/theme/web';
+
 import { badgeToneFor } from '@/theme/tokens';
 
 export default function Overview() {
@@ -17,16 +21,15 @@ export default function Overview() {
   const router = useRouter();
   const { applications, loading, reload, demo } = useApplications();
   const derived = useDerived(applications, theme);
-  const { width } = useWindowDimensions();
-  const wide = width >= 900;
+  const { wide } = useResponsive();
 
   return (
     <Screen title="Overview" onRefresh={demo ? undefined : reload} refreshing={loading}>
       <Head title="Overview — PathWise" description="Your application pipeline at a glance." />
 
-      <View style={[styles.metrics, { flexDirection: wide ? 'row' : 'column' }]}>
+      <View {...web('stack')} style={[styles.metrics, isWeb ? null : { flexDirection: wide ? 'row' : 'column' }]}>
         {derived.metrics.map((metric) => (
-          <Card key={metric.label} style={[styles.metric, wide ? { flex: 1 } : null]}>
+          <Card key={metric.label} {...web('stack-item')} style={[styles.metric, isWeb || !wide ? null : { flex: 1 }]}>
             <Text size={12} tone="fg2" weight="500">
               {metric.label}
             </Text>
@@ -40,8 +43,8 @@ export default function Overview() {
         ))}
       </View>
 
-      <View style={[styles.panels, { flexDirection: wide ? 'row' : 'column' }]}>
-        <Card style={wide ? { flex: 1 } : undefined}>
+      <View {...web('stack')} style={[styles.panels, isWeb ? null : { flexDirection: wide ? 'row' : 'column' }]}>
+        <Card {...web('stack-item')} style={isWeb || !wide ? undefined : { flex: 1 }}>
           <Text size={15} weight="600" style={styles.panelTitle}>
             Upcoming deadlines
           </Text>
@@ -75,7 +78,7 @@ export default function Overview() {
           )}
         </Card>
 
-        <Card style={wide ? { flex: 1.4 } : undefined}>
+        <Card {...web('stack-item-wide')} style={isWeb || !wide ? undefined : { flex: 1.4 }}>
           <Text size={15} weight="600" style={styles.panelTitle}>
             Applications
           </Text>
