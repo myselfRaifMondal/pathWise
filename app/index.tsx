@@ -238,7 +238,9 @@ const styles = StyleSheet.create({
   pill: { paddingHorizontal: 10, height: 22, borderRadius: 980, justifyContent: 'center' },
   planFeatures: { gap: 8, marginVertical: 20 },
   fineprint: { marginTop: 20, maxWidth: 420 },
-  finalCta: { marginTop: 8 },
+  // Button defaults to alignSelf:'flex-start', which overrides the band's
+  // alignItems:'center'. The style prop is applied last, so centre it here.
+  finalCta: { alignSelf: 'center', marginTop: 8 },
   footer: {
     paddingVertical: 32,
     borderTopWidth: StyleSheet.hairlineWidth,

@@ -56,7 +56,10 @@ export function Button({
           borderColor: tone.border,
           borderWidth: tone.border === 'transparent' ? 0 : StyleSheet.hairlineWidth,
           opacity: inert ? 0.45 : pressed ? 0.75 : 1,
-          alignSelf: fullWidth ? 'stretch' : 'flex-start',
+          // Not inherited from the parent's alignItems on purpose: React Native
+        // defaults that to 'stretch', which would make every button full width.
+        // Pass style={{ alignSelf: 'center' }} to centre one — style wins.
+        alignSelf: fullWidth ? 'stretch' : 'flex-start',
         },
         style,
       ]}
