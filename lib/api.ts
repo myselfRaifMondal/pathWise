@@ -1,5 +1,12 @@
 import { secure } from '@/lib/storage';
-import type { Application, ApplicationInput, AuthResponse, User } from '@/lib/types';
+import type {
+  Application,
+  ApplicationInput,
+  AuthResponse,
+  Profile,
+  ProfileInput,
+  User,
+} from '@/lib/types';
 
 export const API_BASE = (
   process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:5001'
@@ -136,6 +143,11 @@ export const api = {
     request<User>('/api/auth/me', { method: 'PATCH', body: patch }),
 
   deleteAccount: () => request<{ message: string }>('/api/auth/account', { method: 'DELETE' }),
+
+  getProfile: () => request<Profile>('/api/profile'),
+
+  saveProfile: (input: ProfileInput) =>
+    request<Profile>('/api/profile', { method: 'PUT', body: input }),
 
   listApplications: () => request<Application[]>('/api/applications'),
 

@@ -23,6 +23,9 @@ export function Field({
       ) : null}
       <TextInput
         {...rest}
+        // The label is a sibling Text, not a <label for>, so without this a
+        // screen reader (and any by-name query) sees an unnamed input.
+        accessibilityLabel={rest.accessibilityLabel ?? label}
         onFocus={(event) => {
           setFocused(true);
           rest.onFocus?.(event);

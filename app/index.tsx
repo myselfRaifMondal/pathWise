@@ -4,6 +4,7 @@ import { Linking, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Head } from '@/components/Head';
+import { Seam } from '@/components/Seam';
 import { Nav } from '@/components/Nav';
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
@@ -73,6 +74,11 @@ export default function Landing() {
   // undefined there and the [data-pw="gutter"] rule applies the padding.
   const { wide, gutter } = useResponsive();
 
+  // Sections alternate between the two backgrounds; a seam is only drawn where
+  // the colour actually changes.
+  const bandColour = (index: number) =>
+    index % 2 === 0 ? theme.colors.band : theme.colors.land;
+
   const openDemo = () => {
     startDemo();
     router.push('/overview');
@@ -99,24 +105,32 @@ export default function Landing() {
           </View>
         </View>
 
-        {FEATURES.map((feature, index) => (
-          <View
-            key={feature.title}
-            {...web('gutter')}
-            style={[
-              styles.band,
-              { paddingHorizontal: gutter,
-                backgroundColor: index % 2 === 0 ? theme.colors.band : theme.colors.land },
-            ]}
-          >
-            <Text variant="bandHeading" style={styles.center}>
-              {feature.title}
-            </Text>
-            <Text variant="bandBody" tone="fg2" style={[styles.center, styles.measure]}>
-              {feature.body}
-            </Text>
-          </View>
-        ))}
+        {FEATURES.map((feature, index) => {
+          const background = bandColour(index);
+          // The hero sits on `land`, so index 0 blends out of that.
+          const previous = index === 0 ? theme.colors.land : bandColour(index - 1);
+          return (
+            <React.Fragment key={feature.title}>
+              {previous === background ? null : <Seam from={previous} to={background} />}
+              <View
+                {...web('gutter')}
+                style={[styles.band, { paddingHorizontal: gutter, backgroundColor: background }]}
+              >
+                <Text variant="bandHeading" style={styles.center}>
+                  {feature.title}
+                </Text>
+                <Text variant="bandBody" tone="fg2" style={[styles.center, styles.measure]}>
+                  {feature.body}
+                </Text>
+              </View>
+            </React.Fragment>
+          );
+        })}
+
+        {/* Pricing, the final CTA and the footer all sit on `land`. */}
+        {bandColour(FEATURES.length - 1) === theme.colors.land ? null : (
+          <Seam from={bandColour(FEATURES.length - 1)} to={theme.colors.land} />
+        )}
 
         <View {...web('gutter')} style={[styles.band, { paddingHorizontal: gutter }]}>
           <Text variant="bandHeading" style={styles.center}>

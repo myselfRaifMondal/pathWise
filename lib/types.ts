@@ -48,3 +48,38 @@ export type AuthResponse = {
   refreshToken: string;
   user: User;
 };
+
+export const SENIORITIES = ['Intern', 'Entry', 'Junior', 'Mid', 'Senior', 'Lead'] as const;
+export type Seniority = (typeof SENIORITIES)[number];
+
+export const WORK_TYPES = ['Remote', 'Hybrid', 'Onsite', 'Any'] as const;
+export type WorkType = (typeof WORK_TYPES)[number];
+
+/**
+ * The details a job application or portal asks for, kept once and reused.
+ * Exactly the shape GET /api/profile returns — every field nullable, because
+ * the endpoint answers with an empty profile rather than 404ing.
+ */
+export type Profile = {
+  fullName: string | null;
+  phone: string | null;
+  currentLocation: string | null;
+  resumeUrl: string | null;
+  noticePeriod: string | null;
+  workAuthorization: string | null;
+  targetRoles: string[];
+  seniority: Seniority | null;
+  preferredLocations: string[];
+  workType: WorkType | null;
+  skills: string[];
+  yearsExperience: number | null;
+  education: string | null;
+  expectedSalaryMin: number | null;
+  salaryCurrency: string;
+  portfolioUrl: string | null;
+  linkedinUrl: string | null;
+  githubUrl: string | null;
+  updatedAt: string | null;
+};
+
+export type ProfileInput = Partial<Omit<Profile, 'updatedAt'>>;

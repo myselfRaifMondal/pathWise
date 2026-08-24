@@ -11,7 +11,7 @@ from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 
 from app import db
 from app.mail import send_reset_email
-from app.models import STAGES, Application, User
+from app.models import SENIORITIES, STAGES, WORK_TYPES, Application, Profile, User
 
 RESET_SALT = "pathwise-password-reset"
 RESET_MAX_AGE = 3600  # seconds
@@ -83,7 +83,12 @@ def register_routes(app):
 
     @app.get("/api/health")
     def health():
-        return jsonify({"status": "ok", "stages": list(STAGES)})
+        return jsonify({
+            "status": "ok",
+            "stages": list(STAGES),
+            "seniorities": list(SENIORITIES),
+            "workTypes": list(WORK_TYPES),
+        })
 
     # ---------- auth ----------
 
@@ -192,6 +197,66 @@ def register_routes(app):
         db.session.delete(user)
         db.session.commit()
         return jsonify({"message": "Account deleted"})
+
+    # ---------- application profile ----------
+
+    @app.get("/api/profile")
+    @jwt_required()
+    def get_profile():
+        row = Profile.query.filter_by(user_id=int(get_jwt_identity())).first()
+        # Never 404: the form should render whether or not anything is saved.
+        return jsonify(row.to_dict() if row else Profile.empty_dict())
+
+    @app.put("/api/profile")
+    @jwt_required()
+    def save_profile():
+        from app.models import _join
+
+        data = request.get_json(silent=True) or {}
+        user_id = int(get_jwt_identity())
+
+        row = Profile.query.filter_by(user_id=user_id).first()
+        if not row:
+            row = Profile(user_id=user_id)
+            db.session.add(row)
+
+        # camelCase over the wire, snake_case in the column.
+        def incoming(column):
+            key = "".join(
+                part if i == 0 else part.title() for i, part in enumerate(column.split("_"))
+            )
+            return key if key in data else None
+
+        for column in Profile.TEXT_FIELDS:
+            key = incoming(column)
+            if key:
+                value = data[key]
+                setattr(row, column, (str(value).strip() or None) if value is not None else None)
+
+        for column in Profile.LIST_FIELDS:
+            key = incoming(column)
+            if key:
+                setattr(row, column, _join(data[key]))
+
+        for column in Profile.INT_FIELDS:
+            key = incoming(column)
+            if key:
+                value = data[key]
+                if value in (None, ""):
+                    setattr(row, column, None)
+                else:
+                    try:
+                        setattr(row, column, int(value))
+                    except (TypeError, ValueError):
+                        return jsonify({"error": f"{key} must be a whole number"}), 400
+
+        if row.seniority and row.seniority not in SENIORITIES:
+            return jsonify({"error": f"seniority must be one of: {', '.join(SENIORITIES)}"}), 400
+        if row.work_type and row.work_type not in WORK_TYPES:
+            return jsonify({"error": f"workType must be one of: {', '.join(WORK_TYPES)}"}), 400
+
+        db.session.commit()
+        return jsonify(row.to_dict())
 
     # ---------- applications ----------
 

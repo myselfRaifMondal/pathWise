@@ -131,6 +131,23 @@ export default function Settings() {
         <>
           <Card style={styles.card}>
             <Text size={15} weight="600">
+              Application details
+            </Text>
+            <Text size={13} tone="fg2">
+              The information a job application or portal asks for — filled in once here,
+              reused everywhere. It is also what job suggestions will match on.
+            </Text>
+            <View style={styles.row}>
+              <Button
+                label="Edit details"
+                variant="outline"
+                onPress={() => router.push('/profile')}
+              />
+            </View>
+          </Card>
+
+          <Card style={styles.card}>
+            <Text size={15} weight="600">
               Profile
             </Text>
             <Field label="Name" value={name} onChangeText={setName} placeholder="Your name" />
