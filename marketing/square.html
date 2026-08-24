@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="tokens.css">
+<style>
+  body { width: 1080px; height: 1080px; position: relative; }
+  .glow-a { width: 900px; height: 900px; right: -280px; top: -240px; }
+  .glow-b { width: 700px; height: 700px; left: -260px; bottom: -300px; }
+
+  .frame { position: absolute; inset: 0; padding: 72px; display: flex; flex-direction: column; }
+
+  .top { display: flex; align-items: center; justify-content: space-between; }
+  .badge { padding: 8px 16px; font-size: 15px; }
+
+  .headline { font-size: 76px; margin-top: 54px; }
+  .sub { font-size: 25px; margin-top: 22px; max-width: 620px; }
+
+  /* Screenshots bleed off the right edge to imply the product continues. */
+  .stage { position: absolute; left: 92px; right: -190px; top: 500px; height: 470px; }
+  .shot-back {
+    position: absolute; left: 300px; top: 8px; width: 720px;
+    transform: rotate(4deg);
+    opacity: 0.92;
+  }
+  .shot-front {
+    position: absolute; left: 0; top: 74px; width: 760px;
+    transform: rotate(-6deg);
+  }
+
+  /* Fades the screenshots into the background instead of hard-cutting them at
+     the canvas edge, and gives the footer a clean field to sit on. */
+  .scrim {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 300px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 45%, #000 100%);
+    pointer-events: none;
+  }
+
+  .foot {
+    position: absolute; left: 72px; bottom: 64px;
+    display: flex; align-items: center; gap: 18px;
+  }
+  .foot .pill { padding: 15px 30px; font-size: 22px; }
+  .byline { color: var(--fg3); font-size: 17px; letter-spacing: -0.01em; }
+</style>
+</head>
+<body>
+  <div class="glow glow-a"></div>
+  <div class="glow glow-b"></div>
+
+  <div class="frame">
+    <div class="top">
+      <div class="wordmark">PathWise</div>
+      <div class="ghost-pill badge">Now live</div>
+    </div>
+
+    <div class="headline">Every application,<br>accounted for.</div>
+    <div class="sub">Track every job and internship in one place — six stages, deadlines that surface themselves, and a funnel from your own log.</div>
+  </div>
+
+  <div class="stage">
+    <div class="shot shot-back"><img src="shots/overview.png" alt=""></div>
+    <div class="shot shot-front"><img src="shots/board.png" alt=""></div>
+  </div>
+
+  <div class="scrim"></div>
+
+  <div class="foot">
+    <div class="pill">pathwise.lol</div>
+    <div class="byline">Free · web, iOS &amp; Android</div>
+  </div>
+</body>
+</html>

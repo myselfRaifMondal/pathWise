@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="tokens.css">
+<style>
+  body { width: 1080px; height: 1920px; position: relative; }
+  .glow-a { width: 1000px; height: 1000px; right: -320px; top: 120px; }
+  .glow-b { width: 800px; height: 800px; left: -300px; bottom: 120px; }
+
+  /* Instagram overlays its own UI top and bottom. Everything that matters
+     stays inside this band: 250px clear at the top, 320px at the bottom. */
+  .safe {
+    position: absolute; left: 0; right: 0; top: 250px; bottom: 320px;
+    padding: 0 80px; display: flex; flex-direction: column; align-items: center;
+    text-align: center;
+  }
+
+  .badge { padding: 9px 20px; font-size: 18px; margin-top: 26px; }
+  .headline { font-size: 88px; margin-top: 40px; }
+  .sub { font-size: 28px; margin-top: 24px; max-width: 600px; }
+
+  /* The board is landscape; at canvas width its cards are unreadable on a
+     phone, and bleeding the whole frame slices columns mid-card. Instead the
+     screenshot is cropped to just the columns and shown slightly oversized. */
+  .stage { position: absolute; left: 46px; right: -250px; top: 900px; }
+  /* Left edge stays intact so the Saved column is whole; the bleed is on the
+     right, where the board genuinely continues off-screen anyway.
+     Scale = 1284/1180 = 1.088, so offsets below are source px x 1.088. */
+  .crop { height: 312px; }
+  .crop img { margin-top: -182px; }   /* hides nav, page title and the hint line */
+  .shot-front { position: absolute; left: 0; right: 0; transform: rotate(-1.6deg); }
+
+  .scrim {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 620px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 40%, #000 78%);
+    pointer-events: none;
+  }
+
+  .foot {
+    position: absolute; left: 0; right: 0; bottom: 330px;
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+  }
+  .foot .pill { padding: 20px 44px; font-size: 30px; }
+  .byline { color: var(--fg2); font-size: 22px; letter-spacing: -0.01em; }
+</style>
+</head>
+<body>
+  <div class="glow glow-a"></div>
+  <div class="glow glow-b"></div>
+
+  <div class="safe">
+    <div class="wordmark" style="font-size:36px">PathWise</div>
+    <div class="ghost-pill badge">Now live</div>
+    <div class="headline">Every application,<br>accounted for.</div>
+    <div class="sub">Every job and internship you have applied to, in one place.</div>
+  </div>
+
+  <div class="stage">
+    <div class="shot shot-front crop"><img src="shots/board.png" alt=""></div>
+  </div>
+
+  <div class="scrim"></div>
+
+  <div class="foot">
+    <div class="pill">pathwise.lol</div>
+    <div class="byline">Free · web, iOS &amp; Android</div>
+  </div>
+</body>
+</html>

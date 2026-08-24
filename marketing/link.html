@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="tokens.css">
+<style>
+  body { width: 1200px; height: 627px; position: relative; }
+  .glow-a { width: 700px; height: 700px; right: -220px; top: -200px; }
+
+  .frame { position: absolute; inset: 0; padding: 62px 64px; display: flex; flex-direction: column; }
+  .headline { font-size: 58px; margin-top: 30px; }
+  .sub { font-size: 21px; margin-top: 18px; max-width: 500px; }
+
+  /* Landscape: type left, product right. */
+  .stage { position: absolute; right: -150px; top: 96px; width: 700px; }
+  .shot-front { transform: rotate(-5deg); }
+
+  .foot { position: absolute; left: 64px; bottom: 54px; display: flex; align-items: center; gap: 16px; }
+  .foot .pill { padding: 13px 26px; font-size: 19px; }
+  .byline { color: var(--fg3); font-size: 15px; }
+</style>
+</head>
+<body>
+  <div class="glow glow-a"></div>
+  <div class="frame">
+    <div class="wordmark">PathWise</div>
+    <div class="headline">Every application,<br>accounted for.</div>
+    <div class="sub">Six stages, deadlines that surface themselves, and a funnel from your own log.</div>
+  </div>
+
+  <div class="stage">
+    <div class="shot shot-front"><img src="shots/board.png" alt=""></div>
+  </div>
+
+  <div class="foot">
+    <div class="pill">pathwise.lol</div>
+    <div class="byline">Free · web, iOS &amp; Android</div>
+  </div>
+</body>
+</html>
