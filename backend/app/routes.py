@@ -1,152 +1,264 @@
-from flask import session, render_template, redirect, url_for, request, flash, jsonify
-from app import db, login_manager
+from datetime import date, datetime
 
-from flask_login import login_user, login_required, logout_user, current_user
-from flask_cors import cross_origin
+from flask import current_app, jsonify, request
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+    get_jwt_identity,
+    jwt_required,
+)
+from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
+
+from app import db
+from app.mail import send_reset_email
+from app.models import STAGES, Application, User
+
+RESET_SALT = "pathwise-password-reset"
+RESET_MAX_AGE = 3600  # seconds
+
+# Fields a client may set directly, mapped to their model column.
+WRITABLE = {
+    "role": "role",
+    "company": "company",
+    "stage": "stage",
+    "kind": "kind",
+    "location": "location",
+    "note": "note",
+}
+DATE_FIELDS = ("applied", "deadline")
+
+
+def _serializer():
+    return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt=RESET_SALT)
+
+
+def _parse_date(value, field):
+    if value in (None, ""):
+        return None
+    if isinstance(value, date):
+        return value
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except (TypeError, ValueError):
+        raise ValueError(f"{field} must be an ISO date (YYYY-MM-DD)")
+
+
+def _current_user():
+    return db.session.get(User, int(get_jwt_identity()))
+
+
+def _tokens_for(user):
+    identity = str(user.id)
+    return {
+        "accessToken": create_access_token(identity=identity),
+        "refreshToken": create_refresh_token(identity=identity),
+        "user": user.to_dict(),
+    }
+
+
+def _apply_payload(application, data):
+    """Copy a request body onto an Application. Raises ValueError on bad input."""
+    for key, column in WRITABLE.items():
+        if key in data:
+            setattr(application, column, data[key])
+
+    for field in DATE_FIELDS:
+        if field in data:
+            setattr(application, field, _parse_date(data[field], field))
+
+    if "contact" in data:
+        contact = data["contact"] or {}
+        if not isinstance(contact, dict):
+            raise ValueError("contact must be an object or null")
+        application.contact_name = contact.get("name")
+        application.contact_title = contact.get("title")
+        application.contact_email = contact.get("email")
+
+    if application.stage not in STAGES:
+        raise ValueError(f"stage must be one of: {', '.join(STAGES)}")
+
 
 def register_routes(app):
-    # simple request logger for debugging
-    @app.before_request
-    def _log_request():
-        app.logger.debug(f"Incoming request: {request.method} {request.path} from {request.remote_addr}")
-        # log headers that may affect auth/CORS
-        app.logger.debug(f"Headers: {dict(request.headers)}")
-    # Import models inside the function to ensure correct app context
-    # Do not import models here; import inside each route function
-    # --- API AUTH ENDPOINTS ---
-    @app.route('/api/signup', methods=['POST', 'OPTIONS'])
-    @cross_origin(supports_credentials=True)
-    def api_signup():
-        from app.models import User
-        app.logger.info("api_signup entered")
-        # Handle CORS preflight
-        if request.method == 'OPTIONS':
-            return jsonify({'msg': 'ok'}), 200
-        data = request.get_json(silent=True)
-        if not data:
-            app.logger.warning("api_signup: no JSON body received")
-            return jsonify({'error': 'JSON body required'}), 400
-        email = data.get('email')
-        password = data.get('password')
+    # ---------- health ----------
+
+    @app.get("/api/health")
+    def health():
+        return jsonify({"status": "ok", "stages": list(STAGES)})
+
+    # ---------- auth ----------
+
+    @app.post("/api/auth/signup")
+    def signup():
+        data = request.get_json(silent=True) or {}
+        email = (data.get("email") or "").strip().lower()
+        password = data.get("password") or ""
+
         if not email or not password:
-            return jsonify({'error': 'Email and password required'}), 400
+            return jsonify({"error": "Email and password are required"}), 400
+        if len(password) < 8:
+            return jsonify({"error": "Password must be at least 8 characters"}), 400
         if User.query.filter_by(email=email).first():
-            return jsonify({'error': 'Email already registered'}), 409
-        user = User(email=email)
+            return jsonify({"error": "That email is already registered"}), 409
+
+        user = User(email=email, name=(data.get("name") or "").strip() or None)
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
-        # Do not call login_user for API signup; return created response
-        return jsonify({'msg': 'Signup successful', 'user': {'id': user.id, 'email': user.email}}), 201
+        return jsonify(_tokens_for(user)), 201
 
-    @app.route('/api/login', methods=['POST'])
-    def api_login():
-        from app.models import User
-        data = request.get_json(silent=True) or {}
-        email = data.get('email')
-        password = data.get('password')
-        user = User.query.filter_by(email=email).first()
-        if user and user.check_password(password):
-            login_user(user)
-            return jsonify({'msg': 'Login successful', 'user': {'id': user.id, 'email': user.email}})
-        return jsonify({'error': 'Invalid credentials'}), 401
-
-    @app.route('/api/logout', methods=['POST'])
-    @login_required
-    def api_logout():
-        logout_user()
-        return jsonify({'msg': 'Logged out'})
-
-    @app.route('/api/session', methods=['GET'])
-    def api_session():
-        # session status
-        if current_user.is_authenticated:
-            return jsonify({'authenticated': True, 'user': {'id': current_user.id, 'email': current_user.email}})
-        return jsonify({'authenticated': False}), 200
-
-    @app.route('/signup', methods=['GET', 'POST'])
-    def signup():
-        from app.models import User
-        if request.method == 'POST':
-            email = request.form.get('email')
-            pwd = request.form.get('password')
-            if User.query.filter_by(email=email).first():
-                flash('Email already registered')
-                return redirect(url_for('signup'))
-            user = User(email=email)
-            user.set_password(pwd)
-            db.session.add(user)
-            db.session.commit()
-            login_user(user)
-            return redirect(url_for('dashboard'))
-        return render_template('signup.html')
-
-    @app.route('/login', methods=['GET', 'POST'])
+    @app.post("/api/auth/login")
     def login():
-        from app.models import User
-        if request.method == 'POST':
-            email = request.form.get('email')
-            pwd = request.form.get('password')
-            user = User.query.filter_by(email=email).first()
-            if user and user.check_password(pwd):
-                login_user(user)
-                return redirect(url_for('dashboard'))
-            flash('Invalid credentials')
-        return render_template('login.html')
+        data = request.get_json(silent=True) or {}
+        email = (data.get("email") or "").strip().lower()
+        user = User.query.filter_by(email=email).first()
+        if not user or not user.check_password(data.get("password") or ""):
+            return jsonify({"error": "Invalid email or password"}), 401
+        return jsonify(_tokens_for(user))
 
-    @app.route('/logout')
-    @login_required
-    def logout():
-        # No model import required here
-        logout_user()
-        return redirect(url_for('login'))
+    @app.post("/api/auth/refresh")
+    @jwt_required(refresh=True)
+    def refresh():
+        user = _current_user()
+        if not user:
+            return jsonify({"error": "Account no longer exists"}), 401
+        return jsonify({"accessToken": create_access_token(identity=str(user.id))})
 
-    @app.route('/dashboard')
-    @login_required
-    def dashboard():
-        return render_template('dashboard.html')
+    @app.get("/api/auth/me")
+    @jwt_required()
+    def me():
+        user = _current_user()
+        if not user:
+            return jsonify({"error": "Account no longer exists"}), 401
+        return jsonify(user.to_dict())
 
-    @app.route('/applications', methods=['GET', 'POST'])
-    @login_required
-    def applications():
-        from app.models import Application
-        if request.method == 'POST':
-            data = request.get_json()
-            app_obj = Application(
-                title=data.get('title'),
-                company=data.get('company'),
-                status=data.get('status'),
-                user_id=current_user.id
+    @app.patch("/api/auth/me")
+    @jwt_required()
+    def update_me():
+        user = _current_user()
+        if not user:
+            return jsonify({"error": "Account no longer exists"}), 401
+        data = request.get_json(silent=True) or {}
+        if "name" in data:
+            user.name = (data.get("name") or "").strip() or None
+        if "themePreference" in data:
+            if data["themePreference"] not in ("dark", "light"):
+                return jsonify({"error": "themePreference must be 'dark' or 'light'"}), 400
+            user.theme_preference = data["themePreference"]
+        db.session.commit()
+        return jsonify(user.to_dict())
+
+    @app.post("/api/auth/forgot")
+    def forgot():
+        data = request.get_json(silent=True) or {}
+        email = (data.get("email") or "").strip().lower()
+        user = User.query.filter_by(email=email).first() if email else None
+        if user:
+            token = _serializer().dumps(user.id)
+            send_reset_email(
+                user.email,
+                f"{current_app.config['APP_BASE_URL']}/reset?token={token}",
             )
-            db.session.add(app_obj)
-            db.session.commit()
-            return jsonify({'msg': 'Created'}), 201
-        apps = Application.query.filter_by(user_id=current_user.id).all()
-        return jsonify([{'id': a.id, 'title': a.title, 'status': a.status} for a in apps])
+        # Always the same response, so the endpoint cannot enumerate accounts.
+        return jsonify({"message": "If the address exists, a reset link is on its way"})
 
-    @app.route('/applications/<int:app_id>', methods=['PUT', 'DELETE'])
-    @login_required
-    def modify_application(app_id):
-        from app.models import Application
-        app_obj = Application.query.get_or_404(app_id)
-        if app_obj.user_id != current_user.id:
-            return jsonify({'msg': 'Forbidden'}), 403
-        if request.method == 'PUT':
-            data = request.get_json()
-            app_obj.status = data.get('status', app_obj.status)
-            db.session.commit()
-            return jsonify({'msg': 'Updated'}), 200
-        elif request.method == 'DELETE':
-            db.session.delete(app_obj)
-            db.session.commit()
-            return jsonify({'msg': 'Deleted'}), 200
+    @app.post("/api/auth/reset")
+    def reset():
+        data = request.get_json(silent=True) or {}
+        password = data.get("password") or ""
+        if len(password) < 8:
+            return jsonify({"error": "Password must be at least 8 characters"}), 400
+        try:
+            user_id = _serializer().loads(data.get("token") or "", max_age=RESET_MAX_AGE)
+        except SignatureExpired:
+            return jsonify({"error": "That reset link has expired"}), 400
+        except BadSignature:
+            return jsonify({"error": "That reset link is not valid"}), 400
 
-    @app.route('/admin/users')
-    @login_required
-    def admin_users():
-        from app.models import User
-        if current_user.role != 'admin':
-            return redirect(url_for('dashboard'))
-        users = User.query.all()
-        return render_template('admin_users.html', users=users)
-    # --- API AUTH ENDPOINTS ---
+        user = db.session.get(User, user_id)
+        if not user:
+            return jsonify({"error": "That reset link is not valid"}), 400
+        user.set_password(password)
+        db.session.commit()
+        return jsonify(_tokens_for(user))
+
+    @app.delete("/api/auth/account")
+    @jwt_required()
+    def delete_account():
+        # Required by App Store guideline 5.1.1(v): an account created in the
+        # app must be deletable from the app.
+        user = _current_user()
+        if not user:
+            return jsonify({"error": "Account no longer exists"}), 401
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({"message": "Account deleted"})
+
+    # ---------- applications ----------
+
+    @app.get("/api/applications")
+    @jwt_required()
+    def list_applications():
+        rows = (
+            Application.query.filter_by(user_id=int(get_jwt_identity()))
+            .order_by(Application.applied.desc().nullslast(), Application.id.desc())
+            .all()
+        )
+        return jsonify([row.to_dict() for row in rows])
+
+    @app.post("/api/applications")
+    @jwt_required()
+    def create_application():
+        data = request.get_json(silent=True) or {}
+        if not (data.get("role") or "").strip() or not (data.get("company") or "").strip():
+            return jsonify({"error": "role and company are required"}), 400
+
+        application = Application(user_id=int(get_jwt_identity()), stage="Applied")
+        try:
+            _apply_payload(application, data)
+        except ValueError as exc:
+            return jsonify({"error": str(exc)}), 400
+
+        # A saved-but-not-submitted application has no applied date by definition.
+        if application.stage != "Saved" and application.applied is None:
+            application.applied = date.today()
+
+        db.session.add(application)
+        db.session.commit()
+        return jsonify(application.to_dict()), 201
+
+    def _owned_or_error(app_id):
+        application = db.session.get(Application, app_id)
+        if not application:
+            return None, (jsonify({"error": "Not found"}), 404)
+        if application.user_id != int(get_jwt_identity()):
+            return None, (jsonify({"error": "Forbidden"}), 403)
+        return application, None
+
+    @app.get("/api/applications/<int:app_id>")
+    @jwt_required()
+    def get_application(app_id):
+        application, error = _owned_or_error(app_id)
+        return error or jsonify(application.to_dict())
+
+    @app.patch("/api/applications/<int:app_id>")
+    @jwt_required()
+    def update_application(app_id):
+        application, error = _owned_or_error(app_id)
+        if error:
+            return error
+        try:
+            _apply_payload(application, request.get_json(silent=True) or {})
+        except ValueError as exc:
+            return jsonify({"error": str(exc)}), 400
+        db.session.commit()
+        return jsonify(application.to_dict())
+
+    @app.delete("/api/applications/<int:app_id>")
+    @jwt_required()
+    def delete_application(app_id):
+        application, error = _owned_or_error(app_id)
+        if error:
+            return error
+        db.session.delete(application)
+        db.session.commit()
+        return jsonify({"message": "Deleted"})

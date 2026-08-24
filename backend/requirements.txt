@@ -1,6 +1,8 @@
 Flask>=3.0
-Flask-Login
-Flask-SQLAlchemy
-Flask-Migrate
-psycopg2-binary
-python-dotenv
+Flask-SQLAlchemy>=3.1
+Flask-Migrate>=4.0
+Flask-Cors>=4.0
+flask-jwt-extended>=4.6
+itsdangerous>=2.1
+psycopg2-binary>=2.9
+python-dotenv>=1.0

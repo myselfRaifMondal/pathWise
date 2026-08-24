@@ -1,56 +1,51 @@
-__all__ = ["db", "login_manager", "create_app"]
-from flask import Flask
+import os
+
 from dotenv import load_dotenv
-import os
-from flask import Flask
-from dotenv import load_dotenv
-import os
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
-from flask_migrate import Migrate
-import sys
-import os
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + '/..'))
-from config import DevelopmentConfig
+from flask import Flask, jsonify
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
-login_manager = LoginManager()
 migrate = Migrate()
+jwt = JWTManager()
+
+__all__ = ["db", "migrate", "jwt", "create_app"]
+
 
 def create_app(config_override=None):
-    # Load environment variables from .env file
-    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '.env')
-    load_dotenv(env_path)
+    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env"))
+
+    from config import DevelopmentConfig, ProductionConfig
+
     app = Flask(__name__)
-    # ensure debug logging is visible for troubleshooting
-    import logging
-    app.logger.setLevel(logging.DEBUG)
-    app.config.from_object(DevelopmentConfig)
+    app.config.from_object(
+        ProductionConfig if os.getenv("VERCEL") or os.getenv("FLASK_ENV") == "production"
+        else DevelopmentConfig
+    )
     if config_override:
         app.config.update(config_override)
+
     db.init_app(app)
     migrate.init_app(app, db)
-    login_manager.init_app(app)
-    login_manager.login_view = 'login'
-    # Enable CORS for frontend requests
-    CORS(app, supports_credentials=True)
+    jwt.init_app(app)
 
-    # Import models and routes
-    with app.app_context():
-        from app.admin import init_admin
-        init_admin(app)
-        from app.routes import register_routes
-        register_routes(app)
-        from app import models  # Import models to register them with SQLAlchemy
-        # Register user loader after models are imported
-        from app.models import User
-        @login_manager.user_loader
-        def load_user(user_id):
-            return User.query.get(int(user_id))
-    # Ensure tables are created for the correct app context
-    if not app.config.get('TESTING', False):
-        with app.app_context():
-            db.create_all()
-            print("Tables created:", list(db.metadata.tables.keys()))
+    origins = app.config.get("CORS_ORIGINS") or ["*"]
+    CORS(app, resources={r"/api/*": {"origins": origins}}, supports_credentials=False)
+
+    from app import models  # noqa: F401  — registers the tables with SQLAlchemy
+    from app.routes import register_routes
+
+    register_routes(app)
+
+    # Schema changes belong to Alembic. A serverless cold start must never touch DDL.
+    @app.errorhandler(404)
+    def _not_found(_):
+        return jsonify({"error": "Not found"}), 404
+
+    @app.errorhandler(500)
+    def _server_error(_):
+        return jsonify({"error": "Internal server error"}), 500
+
     return app

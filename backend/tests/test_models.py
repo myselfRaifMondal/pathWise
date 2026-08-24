@@ -1,22 +1,33 @@
-import pytest
-from app import db
-from app.models import User, Application
+from datetime import date
 
-def test_user_password_hashing(app):
-    user = User(email="test@example.com")
-    user.set_password("password123")
-    assert user.check_password("password123") is True
-    assert user.check_password("wrong") is False
+from app.models import Application, User
 
-def test_application_relationship(app):
-    user = User(email="alice@example.com")
-    user.set_password("secret")
-    db.session.add(user)
-    db.session.commit()
 
-    app_obj = Application(title="Internship", company="ACME Corp", user=user)
-    db.session.add(app_obj)
-    db.session.commit()
+def test_password_is_hashed_not_stored(app):
+    user = User(email="a@b.com")
+    user.set_password("correct-horse")
+    assert user.password_hash != "correct-horse"
+    assert user.check_password("correct-horse")
+    assert not user.check_password("wrong-horse")
 
-    assert app_obj.user == user
 
+def test_to_dict_shapes_contact_as_nested_object_or_none(app):
+    bare = Application(role="SWE Intern", company="Stripe", stage="Applied")
+    assert bare.to_dict()["contact"] is None
+
+    with_contact = Application(
+        role="Frontend Engineer",
+        company="Vercel",
+        stage="Screening",
+        deadline=date(2026, 8, 28),
+        contact_name="Dana Wells",
+        contact_title="Talent partner",
+        contact_email="dana@example.com",
+    )
+    payload = with_contact.to_dict()
+    assert payload["contact"] == {
+        "name": "Dana Wells",
+        "title": "Talent partner",
+        "email": "dana@example.com",
+    }
+    assert payload["deadline"] == "2026-08-28"
