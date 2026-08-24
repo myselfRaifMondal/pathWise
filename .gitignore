@@ -1,7 +1,49 @@
+# deps
 node_modules/
-.env
-env/
+.pnp/
+.yarn/
+
+# python
 __pycache__/
+*.py[cod]
+env/
+venv/
+.venv/
+*.egg-info/
+
+# secrets
+.env
+.env.*
+!.env.example
+
+# databases
+*.db
+*.sqlite
+*.sqlite3
+instance/
+
+# logs
+*.log
+
+# expo / rn
+.expo/
+dist/
+web-build/
+ios/
+android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# next (legacy)
 .next/
+out/
+
+# misc
+.DS_Store
 figma_pathwise/
 test_output.txt
+coverage/
+.vercel
