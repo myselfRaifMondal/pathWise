@@ -37,39 +37,29 @@ const PLANS = [
     cadence: 'forever',
     cta: 'Get started',
     featured: false,
-    features: [
-      'Up to 25 applications',
-      'All six stages and the board',
-      'Deadlines and calendar',
-      'One device',
-    ],
-  },
-  {
-    name: 'Plus',
-    price: '₹149',
-    cadence: 'per month · ₹1,190 per year',
-    cta: 'Try Plus free for 14 days',
-    featured: true,
+    badge: null as string | null,
     features: [
       'Unlimited applications',
-      'Notes and contacts on every application',
+      'All six stages and the board',
+      'Deadlines and calendar',
       'Analytics — response, interview and offer rates',
-      'Deadline reminders by email',
-      'CSV export and sync across devices',
+      'Notes and contacts on every application',
+      'Web, iOS and Android',
     ],
   },
   {
-    name: 'Coach',
-    price: '₹499',
-    cadence: 'per month, per coach',
-    cta: 'Start with Coach',
-    featured: false,
+    name: 'Early Access',
+    price: '₹99',
+    cadence: 'per month · ₹990 per year',
+    cta: 'Get early access',
+    featured: true,
+    badge: 'New',
     features: [
-      'Everything in Plus',
-      'Up to 20 candidate workspaces',
-      'Shared boards with comments',
-      'Funnel reports across candidates',
-      'For advisors and career centers',
+      'Everything in Free, always',
+      'New features while they are still being built',
+      'Email reminders and CSV export, as they land',
+      'A say in what gets built next',
+      'Supports an independent, open-source project',
     ],
   },
 ];
@@ -133,7 +123,7 @@ export default function Landing() {
             {'Pricing that\nstays out of the way.'}
           </Text>
           <Text variant="bandBody" tone="fg2" style={[styles.center, styles.measure]}>
-            Free covers a full job search. Pay only when you need more.
+            Every feature is free. Pay only if you want what comes next, first.
           </Text>
 
           <View
@@ -157,10 +147,10 @@ export default function Landing() {
                   <Text size={15} weight="600">
                     {plan.name}
                   </Text>
-                  {plan.featured ? (
+                  {plan.badge ? (
                     <View style={[styles.pill, { backgroundColor: theme.colors.tint }]}>
                       <Text size={11} weight="500" tone="fg2">
-                        Most popular
+                        {plan.badge}
                       </Text>
                     </View>
                   ) : null}
@@ -245,11 +235,13 @@ const styles = StyleSheet.create({
   measure: { alignSelf: 'center' },
   heroActions: { flexDirection: 'row', gap: 12, marginTop: 12, flexWrap: 'wrap', justifyContent: 'center' },
   band: { paddingVertical: 88, alignItems: 'center', gap: 16 },
-  plans: { gap: 20, marginTop: 24, width: '100%', maxWidth: 1000, alignSelf: 'center' },
+  plans: { gap: 20, marginTop: 24, width: '100%', maxWidth: 760, alignSelf: 'center' },
   plan: { borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, padding: 28, gap: 8 },
   planHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   pill: { paddingHorizontal: 10, height: 22, borderRadius: 980, justifyContent: 'center' },
-  planFeatures: { gap: 8, marginVertical: 20 },
+  // flexGrow lets the feature list absorb the slack, so the two cards' CTAs
+  // share a baseline even when one tier lists more features than the other.
+  planFeatures: { gap: 8, marginVertical: 20, flexGrow: 1 },
   fineprint: { marginTop: 20, maxWidth: 420 },
   // Button defaults to alignSelf:'flex-start', which overrides the band's
   // alignItems:'center'. The style prop is applied last, so centre it here.
